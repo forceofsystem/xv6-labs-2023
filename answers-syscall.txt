@@ -1,0 +1,5 @@
+1. Usertrap in kernel/trap.c called syscall.
+2. The value of p->trapframe->a7 is 7, which means the seventh syscall exec.
+3. The previous mode that the CPU was in is machine mode.
+4. lw   a3,0(zero). Register a3 is corresponds to the variable num.
+5. The name is "initcode", which pid is 1.

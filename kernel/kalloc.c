@@ -57,7 +57,7 @@ kfree(void *pa)
   r = (struct run*)pa;
 
   acquire(&kmem.lock);
-  r->next = kmem.freelist;
+  r->next = kmem.freelist; // add the node to the front of the list
   kmem.freelist = r;
   release(&kmem.lock);
 }
@@ -73,10 +73,27 @@ kalloc(void)
   acquire(&kmem.lock);
   r = kmem.freelist;
   if(r)
+    // delete the first node from the list to allocate memory
     kmem.freelist = r->next;
   release(&kmem.lock);
 
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
+}
+
+uint64
+freemem(void)
+{
+  struct run *r;
+  uint64 num = 0;
+  acquire(&kmem.lock);
+  r = kmem.freelist;
+  while(r)
+  {
+    num++;
+    r = r->next;
+  }
+  release(&kmem.lock);
+  return num * PGSIZE;
 }

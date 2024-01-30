@@ -1,0 +1,6 @@
+Register a2 contains 13 in main's call to printf.
+li a1, 12
+ra+1536
+0
+He110 World 0x726c6400 It's no need to change 57616 to a different value.
+3 8229 This call to printf need two arguments, but only one is provided. So the second argument's value is undefined, this value may be a trash value on the stack.

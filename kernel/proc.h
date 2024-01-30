@@ -103,5 +103,10 @@ struct proc {
   struct context context;      // swtch() here to run process
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
+  int alarm_interval;          // Clock interval
+  uint64 handler_va;           // Handler's virtual address
+  int passed_interval;         // Amount of passed interval
+  int have_return;             // Whether the handler has returned;
+  struct trapframe old_frame; // Stored registers
   char name[16];               // Process name (debugging)
 };

@@ -132,6 +132,10 @@ found:
     return 0;
   }
 
+  p->alarm_interval = 0;
+  p->passed_interval = 0;
+  p->handler_va = 0;
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){

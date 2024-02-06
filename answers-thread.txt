@@ -1,0 +1,5 @@
+Because the function `insert` has the critical section, the `insert` function is not thread-safe.
+Sequence of events:
+- Thread 1 calls `put(key, value)`, calculates the hash, and calls insert.
+- Before the `insert` is called, the thread is preempted. Thread 2 calls `put(key, value)`, calculates the hash, which is equal to the hash calculated by Thread 1, and calls insert.
+- Thread 2 finishes the `insert` function and returns. Thread 1 resumes and finishes the `insert` function. The value inserted by Thread 2 is overwritten by the value inserted by Thread 1, i.e., the value inserted by Thread 2 is missing.

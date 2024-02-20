@@ -256,7 +256,8 @@ create(char *path, short type, short major, short minor)
   if((ip = dirlookup(dp, name, 0)) != 0){
     iunlockput(dp);
     ilock(ip);
-    if(type == T_FILE && (ip->type == T_FILE || ip->type == T_DEVICE))
+    if((type == T_FILE && (ip->type == T_FILE || ip->type == T_DEVICE)) || 
+        (type == T_SYMLINK && ip->type == T_SYMLINK))
       return ip;
     iunlockput(ip);
     return 0;
@@ -333,7 +334,37 @@ sys_open(void)
       end_op();
       return -1;
     }
+    if (ip->type == T_SYMLINK && !(omode & O_NOFOLLOW))
+    {
+      int depth = 0;
+      while (depth < 10)
+      {
+        if (readi(ip, 0, (uint64)path, 0, MAXPATH) < 0)
+        {
+          iunlockput(ip);
+          end_op();
+          return -1;
+        }
+        iunlockput(ip);
+        if ((ip = namei(path)) == 0)
+        {
+          end_op();
+          return -1;
+        }
+        ilock(ip);
+        if (ip->type != T_SYMLINK)
+          break;
+        depth++;
+      }
+      if (depth >= 10)
+      {
+        iunlockput(ip);
+        end_op();
+        return -1;
+      }
+    }
   }
+
 
   if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
     iunlockput(ip);
@@ -501,5 +532,33 @@ sys_pipe(void)
     fileclose(wf);
     return -1;
   }
+  return 0;
+}
+
+uint64
+sys_symlink(void)
+{
+  char target[MAXPATH], path[MAXPATH];
+
+  if (argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0)
+    return -1;
+
+  // create the symbolic link
+  begin_op();
+  struct inode *ip = create(path, T_SYMLINK, 0, 0);
+  if (ip == 0)
+  {
+    end_op();
+    return -1;
+  }
+
+  if (writei(ip, 0, (uint64)target, 0, MAXPATH) < 0)
+  {
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  iunlockput(ip);
+  end_op();
   return 0;
 }
